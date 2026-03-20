@@ -1,8 +1,6 @@
 import axios from 'axios';
 import { relayService } from '../relay.service';
 import { stateService } from '../state.service';
-import { telegramBot } from '../../telegram/telegram';
-import { config } from '../../utils/config';
 import { IAgentPosition } from '../../interface/agent.interface';
 import { agentPolicyService } from './policy.service';
 
@@ -77,10 +75,7 @@ class AgentPositionService {
             pos.tokenAddress,
             `Max holding ${policy.maxHoldingMinutes}m`
           );
-          await telegramBot.sendMessage(
-            config.TELEGRAM_CHAT_ID,
-            `⏱️ Closed ${pos.symbol} by max holding rule\nTx: ${tx}`
-          );
+          console.log(`⏱️ Closed ${pos.symbol} by max holding rule | tx=${tx}`);
           continue;
         }
 
@@ -94,10 +89,7 @@ class AgentPositionService {
             pos.tokenAddress,
             `Take profit ${policy.takeProfitPercent}%`
           );
-          await telegramBot.sendMessage(
-            config.TELEGRAM_CHAT_ID,
-            `💰 TP hit for ${pos.symbol} (+${pnlPercent.toFixed(2)}%)\nTx: ${tx}`
-          );
+          console.log(`💰 TP hit for ${pos.symbol} (${pnlPercent.toFixed(2)}%) | tx=${tx}`);
           continue;
         }
 
@@ -106,17 +98,11 @@ class AgentPositionService {
             pos.tokenAddress,
             `Stop loss ${policy.stopLossPercent}%`
           );
-          await telegramBot.sendMessage(
-            config.TELEGRAM_CHAT_ID,
-            `🛑 SL hit for ${pos.symbol} (${pnlPercent.toFixed(2)}%)\nTx: ${tx}`
-          );
+          console.log(`🛑 SL hit for ${pos.symbol} (${pnlPercent.toFixed(2)}%) | tx=${tx}`);
           continue;
         }
       } catch (error) {
-        await telegramBot.sendMessage(
-          config.TELEGRAM_CHAT_ID,
-          `⚠️ Position manager error for ${pos.symbol}: ${error}`
-        );
+        console.error(`⚠️ Position manager error for ${pos.symbol}: ${error}`);
       }
     }
   }

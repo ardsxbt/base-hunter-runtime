@@ -1,6 +1,5 @@
 import { ethers } from 'ethers';
 import { isContractVerified } from '../etherscan.service';
-import { MonitoringTelegram, telegramService } from '../../telegram/telegram';
 import { BlacklistUtils } from '../../utils/blacklistUtils';
 import { config } from '../../utils/config';
 import { sleep } from '../../utils/utils';
@@ -13,10 +12,12 @@ import {
   zoraFactory,
 } from '../../contracts/contracts';
 import { stateService } from '../state.service';
-import { TFactorySelected } from '../../interface/token.interface';
+import { IPairInfo, TFactorySelected } from '../../interface/token.interface';
 
 class TokenMonitoringService {
   private trackedPairsUniswapV2 = new Set<string>();
+  private pairAlertHandler: (pairInfo: IPairInfo, exchange: string) => Promise<void> =
+    async () => {};
   private trackedPairsUniswapV3 = new Set<string>();
   private monitoring = false;
   private selectedFactories = new Set<TFactorySelected>();
@@ -63,14 +64,6 @@ class TokenMonitoringService {
     version: string
   ): Promise<void> {
     console.log(`🆕 New coin created on Zora: ${coin}`);
-    try {
-      await telegramService.bot.sendMessage(
-        config.TELEGRAM_CHAT_ID,
-        `🆕 New coin created on Zora: ${coin}`
-      );
-    } catch (e) {
-      console.error('Failed to send Zora coin created message', e);
-    }
   }
 
   private refreshSelectedFactories(): void {
@@ -123,7 +116,7 @@ class TokenMonitoringService {
             );
           }
           if (verificationPromises.length) await Promise.all(verificationPromises);
-          await MonitoringTelegram.sendPairAlert(pairInfo, 'Uniswap V2');
+          await this.pairAlertHandler(pairInfo, 'Uniswap V2');
         }
       } catch (error) {
         console.error(`Error processing new pair ${pairAddress}:`, error);
@@ -178,7 +171,7 @@ class TokenMonitoringService {
                 `🟦 [V3] New token alert: ${pairInfo.token0.symbol}/${pairInfo.token1.symbol}`
               );
               pairInfo.liquidityETH = liquidityETH;
-              await MonitoringTelegram.sendPairAlert(pairInfo, 'Uniswap V3');
+              await this.pairAlertHandler(pairInfo, 'Uniswap V3');
             }
           }
         );
@@ -222,6 +215,10 @@ class TokenMonitoringService {
       );
       this.onCoinCreatedHandler = undefined;
     }
+  }
+
+  setPairAlertHandler(handler: (pairInfo: IPairInfo, exchange: string) => Promise<void>): void {
+    this.pairAlertHandler = handler;
   }
 
   public async start(): Promise<void> {

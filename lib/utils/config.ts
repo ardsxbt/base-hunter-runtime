@@ -32,6 +32,7 @@ export interface IConfig {
   USDC_ADDRESS: string;
   NODE_ENV: string;
   IS_DEVELOPMENT: boolean;
+  SERVICE_MODE: boolean;
 }
 
 // Configuration object
@@ -68,4 +69,5 @@ export const config: IConfig = {
   USDC_ADDRESS: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // USDC on Base
   NODE_ENV: process.env.NODE_ENV || 'production',
   IS_DEVELOPMENT: process.env.NODE_ENV === 'development',
+  SERVICE_MODE: process.env.SERVICE_MODE === 'true',
 };

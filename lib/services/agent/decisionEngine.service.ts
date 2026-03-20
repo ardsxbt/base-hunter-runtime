@@ -2,7 +2,6 @@ import { config } from '../../utils/config';
 import { IAgentContext, IAgentDecision, IAgentReceipt } from '../../interface/agent.interface';
 import { getNonWETHToken } from '../../contracts/pairAnalyzer';
 import { relayService } from '../relay.service';
-import { telegramBot } from '../../telegram/telegram';
 import { agentPolicyService } from './policy.service';
 import { agentReceiptService } from './receipt.service';
 import { agentPositionService } from './position.service';
@@ -92,9 +91,8 @@ class DecisionEngineService {
         receipt.status = 'simulated';
         this.lastActionMap.set(token.address.toLowerCase(), Date.now());
         agentReceiptService.append(receipt);
-        await telegramBot.sendMessage(
-          config.TELEGRAM_CHAT_ID,
-          `🤖 Agent decision (paper): BUY ${decision.amountEth} ETH of ${token.symbol}\nScore: ${decision.score}\nReason: ${decision.reasons.join(', ')}`
+        console.log(
+          `🤖 Agent decision (paper): BUY ${decision.amountEth} ETH of ${token.symbol} | score=${decision.score}`
         );
         return;
       }
@@ -121,18 +119,14 @@ class DecisionEngineService {
         status: 'open',
       });
 
-      await telegramBot.sendMessage(
-        config.TELEGRAM_CHAT_ID,
-        `🤖 Agent executed BUY ${decision.amountEth} ETH of ${token.symbol}\nTx: ${buyResult.txHash}`
+      console.log(
+        `🤖 Agent executed BUY ${decision.amountEth} ETH of ${token.symbol} | tx=${buyResult.txHash}`
       );
     } catch (error) {
       receipt.status = 'failed';
       receipt.error = `${error}`;
       agentReceiptService.append(receipt);
-      await telegramBot.sendMessage(
-        config.TELEGRAM_CHAT_ID,
-        `❌ Agent action failed for ${token.symbol}: ${error}`
-      );
+      console.error(`❌ Agent action failed for ${token.symbol}: ${error}`);
     }
   }
 }
