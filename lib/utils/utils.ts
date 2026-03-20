@@ -88,6 +88,18 @@ export const commandList: ICommand[] = [
     command: '/stopwallet',
     description: 'Stop wallet monitoring',
   },
+  {
+    command: '/automode on|off',
+    description: 'Enable or disable autonomous decision engine',
+  },
+  {
+    command: '/executionmode paper|live',
+    description: 'Set agent execution mode (paper simulation or live swaps)',
+  },
+  {
+    command: '/agentstatus',
+    description: 'Show autonomous agent policy and status',
+  },
 ];
 
 export function getTimeAgo(timestamp: number): string {

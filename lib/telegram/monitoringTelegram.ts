@@ -9,6 +9,8 @@ import { stateService } from '../services/state.service';
 import { checkUserTokenInfo } from '../services/info.service';
 import { ethers } from 'ethers';
 import { relayService } from '../services/relay.service';
+import { decisionEngineService } from '../services/agent/decisionEngine.service';
+import { agentPolicyService } from '../services/agent/policy.service';
 
 // Send new pair alert
 export async function sendPairAlert(pairInfo: IPairInfo, exchange: string): Promise<void> {
@@ -48,6 +50,9 @@ export async function sendPairAlert(pairInfo: IPairInfo, exchange: string): Prom
       nonWETHToken.symbol
     } with ${pairInfo.liquidityETH.toFixed(2)} ETH liquidity`
   );
+
+  // Optional autonomous follow-up (paper/live mode controlled by policy)
+  await decisionEngineService.evaluateAndAct({ pairInfo, exchange });
 }
 
 export function commandHandlers(): void {
@@ -86,6 +91,42 @@ export function commandHandlers(): void {
     const chatId = msg.chat.id;
     const status = tokenMonitoringService.status() ? 'Running 🟢' : 'Stopped 🛑';
     await telegramBot.sendMessage(chatId, `Monitoring Status: ${status}`);
+  });
+
+  telegramBot.onText(/^\/automode (on|off)$/i, async (msg, match) => {
+    const chatId = msg.chat.id;
+    const mode = (match?.[1] || '').toLowerCase();
+    const updated = agentPolicyService.setPolicy({ enabled: mode === 'on' });
+    await telegramBot.sendMessage(
+      chatId,
+      `🤖 Auto mode is now *${updated.enabled ? 'ON' : 'OFF'}*\nExecution mode: *${updated.executionMode}*`,
+      { parse_mode: 'Markdown' }
+    );
+  });
+
+  telegramBot.onText(/^\/executionmode (paper|live)$/i, async (msg, match) => {
+    const chatId = msg.chat.id;
+    const executionMode = ((match?.[1] || 'paper').toLowerCase() as 'paper' | 'live');
+    const updated = agentPolicyService.setPolicy({ executionMode });
+    await telegramBot.sendMessage(
+      chatId,
+      `⚙️ Execution mode updated to *${updated.executionMode}*`,
+      { parse_mode: 'Markdown' }
+    );
+  });
+
+  telegramBot.onText(/^\/agentstatus$/, async msg => {
+    const chatId = msg.chat.id;
+    const policy = agentPolicyService.getPolicy();
+    const text =
+      `🤖 *Agent Status*\n` +
+      `enabled: *${policy.enabled}*\n` +
+      `executionMode: *${policy.executionMode}*\n` +
+      `minScore: *${policy.minScore}*\n` +
+      `buyEth: *${policy.defaultBuyEth}*\n` +
+      `liquidityRange: *${policy.minLiquidityEth} - ${policy.maxLiquidityEth} ETH*\n` +
+      `cooldown: *${policy.cooldownMinutes} min*`;
+    await telegramBot.sendMessage(chatId, text, { parse_mode: 'Markdown' });
   });
 
   telegramBot.onText(/^\/factorylist$/, async msg => {
