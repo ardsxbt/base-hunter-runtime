@@ -6,6 +6,7 @@ import { uniswapTradingService } from '../uniswapTrading.service';
 import { agentPolicyService } from './policy.service';
 import { agentReceiptService } from './receipt.service';
 import { agentPositionService } from './position.service';
+import { candidateAlertService } from './candidateAlert.service';
 
 class DecisionEngineService {
   private lastActionMap = new Map<string, number>();
@@ -146,6 +147,17 @@ class DecisionEngineService {
     };
 
     try {
+      if (decision.score >= policy.minScore) {
+        candidateAlertService.push({
+          timestamp: new Date().toISOString(),
+          token: token.symbol,
+          tokenAddress: token.address,
+          pairAddress: ctx.pairInfo.pairAddress,
+          score: decision.score,
+          reasons: decision.reasons,
+        });
+      }
+
       if (decision.action !== 'BUY' || !decision.amountEth) {
         agentReceiptService.append(receipt);
         console.log(`🤖 SKIP ${token.symbol} | score=${decision.score} | ${decision.reasons.join(' | ')}`);
