@@ -57,22 +57,36 @@ class UniswapTradingService {
   }
 
   private async quote(tokenIn: string, tokenOut: string, amount: string): Promise<IUniswapQuoteResponse> {
-    const res = await axios.post(
-      `${UNISWAP_API}/quote`,
-      {
-        swapper: this.wallet.address,
-        tokenIn,
-        tokenOut,
-        tokenInChainId: String(config.BASE_CHAIN_ID),
-        tokenOutChainId: String(config.BASE_CHAIN_ID),
-        amount,
-        type: 'EXACT_INPUT',
-        slippageTolerance: 0.5,
-        routingPreference: 'BEST_PRICE',
-      },
-      { headers: this.headers() }
-    );
-    return res.data as IUniswapQuoteResponse;
+    const slippageCandidates = [0.5, 1, 3];
+    let last: IUniswapQuoteResponse | undefined;
+
+    for (const slippageTolerance of slippageCandidates) {
+      const res = await axios.post(
+        `${UNISWAP_API}/quote`,
+        {
+          swapper: this.wallet.address,
+          tokenIn,
+          tokenOut,
+          tokenInChainId: String(config.BASE_CHAIN_ID),
+          tokenOutChainId: String(config.BASE_CHAIN_ID),
+          amount,
+          type: 'EXACT_INPUT',
+          slippageTolerance,
+          routingPreference: 'BEST_PRICE',
+        },
+        { headers: this.headers() }
+      );
+
+      const quote = res.data as IUniswapQuoteResponse;
+      last = quote;
+      const failureReasons = ((quote as any).quote?.txFailureReasons || []) as string[];
+      if (!failureReasons.includes('SIMULATION_ERROR')) {
+        return quote;
+      }
+    }
+
+    if (!last) throw new Error('Failed to get Uniswap quote');
+    return last;
   }
 
   private async signPermitIfNeeded(quote: IUniswapQuoteResponse): Promise<string | undefined> {
