@@ -7,9 +7,28 @@ import { agentPolicyService } from './policy.service';
 import { agentReceiptService } from './receipt.service';
 import { agentPositionService } from './position.service';
 import { candidateAlertService } from './candidateAlert.service';
+import { swapNotifyService } from './swapNotify.service';
 
 class DecisionEngineService {
   private lastActionMap = new Map<string, number>();
+
+  private async getEthAmountForUsd(targetUsd: number): Promise<number> {
+    try {
+      const res = await axios.get(
+        'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd',
+        { timeout: 5000 }
+      );
+      const ethUsd = Number(res.data?.ethereum?.usd);
+      if (Number.isFinite(ethUsd) && ethUsd > 0) {
+        return targetUsd / ethUsd;
+      }
+    } catch {
+      // ignore and use fallback below
+    }
+
+    // conservative fallback (~$1 around $2000/ETH)
+    return 0.0005;
+  }
 
   private async getMarketSignals(tokenAddress: string): Promise<{
     volume24hUsd?: number;
@@ -112,11 +131,12 @@ class DecisionEngineService {
     }
 
     if (score >= policy.minScore) {
+      const oneDollarEth = await this.getEthAmountForUsd(1);
       return {
         action: 'BUY',
         score,
         reasons,
-        amountEth: Math.min(policy.defaultBuyEth, policy.maxBuyEth),
+        amountEth: Math.min(oneDollarEth, policy.maxBuyEth),
       };
     }
 
@@ -168,6 +188,15 @@ class DecisionEngineService {
         receipt.status = 'simulated';
         this.lastActionMap.set(token.address.toLowerCase(), Date.now());
         agentReceiptService.append(receipt);
+        swapNotifyService.push({
+          timestamp: new Date().toISOString(),
+          token: token.symbol,
+          tokenAddress: token.address,
+          amountEth: decision.amountEth,
+          mode: 'paper',
+          status: 'simulated',
+          reason: decision.reasons.join(' | '),
+        });
         console.log(
           `🤖 PAPER BUY ${decision.amountEth} ETH of ${token.symbol} | score=${decision.score} | ${decision.reasons.join(' | ')}`
         );
@@ -195,6 +224,17 @@ class DecisionEngineService {
         status: 'open',
       });
 
+      swapNotifyService.push({
+        timestamp: new Date().toISOString(),
+        token: token.symbol,
+        tokenAddress: token.address,
+        amountEth: decision.amountEth,
+        txHash: buyResult.txHash,
+        mode: 'live',
+        status: 'submitted',
+        reason: decision.reasons.join(' | '),
+      });
+
       console.log(
         `🤖 LIVE BUY ${decision.amountEth} ETH of ${token.symbol} | tx=${buyResult.txHash} | score=${decision.score}`
       );
@@ -202,6 +242,15 @@ class DecisionEngineService {
       receipt.status = 'failed';
       receipt.error = `${error}`;
       agentReceiptService.append(receipt);
+      swapNotifyService.push({
+        timestamp: new Date().toISOString(),
+        token: token.symbol,
+        tokenAddress: token.address,
+        amountEth: decision.amountEth || 0,
+        mode: policy.executionMode,
+        status: 'failed',
+        reason: `${error}`,
+      });
       console.error(`❌ Agent action failed for ${token.symbol}: ${error}`);
     }
   }
