@@ -56,7 +56,11 @@ class UniswapTradingService {
     await tx.wait();
   }
 
-  private async quote(tokenIn: string, tokenOut: string, amount: string): Promise<IUniswapQuoteResponse> {
+  private async quote(
+    tokenIn: string,
+    tokenOut: string,
+    amount: string
+  ): Promise<IUniswapQuoteResponse> {
     const slippageCandidates = [0.5, 1, 3];
     let last: IUniswapQuoteResponse | undefined;
 
@@ -137,7 +141,10 @@ class UniswapTradingService {
     return { txHash, tokenInfo };
   }
 
-  async sellTokenWithUniswap(tokenAddress: string, tokenAmount: string): Promise<IUniswapSwapResult> {
+  async sellTokenWithUniswap(
+    tokenAddress: string,
+    tokenAmount: string
+  ): Promise<IUniswapSwapResult> {
     const tokenInfo = await checkUserTokenInfo(tokenAddress);
     const amount =
       tokenAmount.toLowerCase() === 'max'

@@ -180,7 +180,9 @@ class DecisionEngineService {
 
       if (decision.action !== 'BUY' || !decision.amountEth) {
         agentReceiptService.append(receipt);
-        console.log(`🤖 SKIP ${token.symbol} | score=${decision.score} | ${decision.reasons.join(' | ')}`);
+        console.log(
+          `🤖 SKIP ${token.symbol} | score=${decision.score} | ${decision.reasons.join(' | ')}`
+        );
         return;
       }
 

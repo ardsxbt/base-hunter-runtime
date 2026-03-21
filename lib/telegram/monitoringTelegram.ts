@@ -447,7 +447,10 @@ export function commandHandlers(): void {
       );
 
       // Execute the swap via Uniswap Trading API
-      const sellResult = await uniswapTradingService.sellTokenWithUniswap(tokenAddress, tokenAmount);
+      const sellResult = await uniswapTradingService.sellTokenWithUniswap(
+        tokenAddress,
+        tokenAmount
+      );
 
       await telegramBot.sendMessage(
         chatId,
