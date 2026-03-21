@@ -64,21 +64,14 @@ The runtime scores each candidate token from **0 to 100**:
 - Agent disabled
 
 
-### Optional Telegram mode
-Telegram command interface still exists, but is optional.
-In service mode, Telegram is disabled automatically.
+## Run mode
 
----
-
-## Run modes
-
-## 1) Service mode (recommended for AI agent runtime)
-No Telegram bot needed.
+Service mode only (AI-agent runtime, no Telegram).
 
 This mode is optimized for agent orchestrators (OpenClaw/CLI/systemd) where another agent or service supervises logs, receipts, and policy state.
 
 ```bash
-SERVICE_MODE=true npm run dev
+npm run dev
 ```
 
 Behavior:
@@ -87,12 +80,6 @@ Behavior:
 - Runs TP/SL/max-holding position loop
 - Writes receipts to `agent_log.json`
 
-## 2) Telegram mode (legacy/manual control)
-Requires valid Telegram bot token/chat id.
-
-```bash
-npm run dev
-```
 
 ---
 
@@ -102,7 +89,6 @@ npm run dev
 - Base RPC / provider endpoints (Alchemy or other)
 - Wallet private key (only for `live` execution)
 - Etherscan API key (optional but recommended)
-- Telegram token/chat only if using Telegram mode
 
 ---
 
@@ -122,7 +108,7 @@ cp .env.example .env
 
 3. Start in safe mode (service + paper)
 ```bash
-SERVICE_MODE=true npm run dev
+npm run dev
 ```
 
 4. Build check
@@ -141,7 +127,6 @@ Uniswap Trading API config (required for swaps):
 
 From `.env`:
 
-- `SERVICE_MODE=true` → disable Telegram polling, run internal runtime
 - `ALCHEMY_WS_URL`, `ALCHEMY_HTTP_URL`, `BASE_MAINET_RPC_URL` → chain connectivity
 - `WALLET_PRIVATE_KEY` → required for live transactions
 - `MIN_LIQUIDITY_ETH`, `MAX_LIQUIDITY_ETH` → pool filter

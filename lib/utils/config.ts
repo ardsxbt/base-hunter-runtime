@@ -7,8 +7,6 @@ export interface IConfig {
   ALCHEMY_WS_URL: string;
   ALCHEMY_HTTP_URL: string;
   BASE_MAINET_RPC_URL: string;
-  TELEGRAM_BOT_TOKEN: string;
-  TELEGRAM_CHAT_ID: string;
   BIG_BUY_THRESHOLD: number;
   MIN_LIQUIDITY_ETH: number;
   MAX_LIQUIDITY_ETH: number;
@@ -32,7 +30,6 @@ export interface IConfig {
   USDC_ADDRESS: string;
   NODE_ENV: string;
   IS_DEVELOPMENT: boolean;
-  SERVICE_MODE: boolean;
   UNISWAP_API_KEY?: string;
   UNISWAP_ROUTER_VERSION: string;
 }
@@ -42,8 +39,6 @@ export const config: IConfig = {
   ALCHEMY_WS_URL: process.env.ALCHEMY_WS_URL!,
   ALCHEMY_HTTP_URL: process.env.ALCHEMY_HTTP_URL!,
   BASE_MAINET_RPC_URL: process.env.BASE_MAINET_RPC_URL!,
-  TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN!,
-  TELEGRAM_CHAT_ID: process.env.TELEGRAM_CHAT_ID!,
   BIG_BUY_THRESHOLD: parseFloat('1.0'),
   MIN_LIQUIDITY_ETH: process.env.MIN_LIQUIDITY_ETH
     ? parseFloat(process.env.MIN_LIQUIDITY_ETH)
@@ -71,7 +66,6 @@ export const config: IConfig = {
   USDC_ADDRESS: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // USDC on Base
   NODE_ENV: process.env.NODE_ENV || 'production',
   IS_DEVELOPMENT: process.env.NODE_ENV === 'development',
-  SERVICE_MODE: process.env.SERVICE_MODE === 'true',
   UNISWAP_API_KEY: process.env.UNISWAP_API_KEY,
   UNISWAP_ROUTER_VERSION: process.env.UNISWAP_ROUTER_VERSION || '2.0',
 };

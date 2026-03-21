@@ -11,7 +11,7 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // Graceful shutdown
 process.on('SIGINT', () => {
-  console.log('\n🛑 Shutting down Base Sniper Bot...');
+  console.log('\n🛑 Shutting down Base Hunter Runtime...');
   process.exit(0);
 });
 
@@ -19,4 +19,4 @@ process.on('SIGINT', () => {
 const bot = new App();
 bot.start().catch(console.error);
 
-console.log('🎯 Base Sniper Bot initialized and ready to hunt!');
+console.log('🎯 Base Hunter Runtime initialized and ready to hunt!');

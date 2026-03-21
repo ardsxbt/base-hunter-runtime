@@ -14,7 +14,7 @@ export interface IUserTokenInfo {
   symbol: string;
   decimals: number;
   totalSupply: string;
-  balance: BigNumber;
+  balance: bigint;
 }
 
 export interface ITokenInfo {
