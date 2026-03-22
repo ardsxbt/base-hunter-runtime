@@ -8,6 +8,7 @@ export interface IAgentConfig {
   enabled: boolean;
   executionMode: TExecutionMode;
   strategyPath: TStrategyPath;
+  hookGuardEnabled: boolean;
   minScore: number;
   maxConcurrentPositions: number;
   cooldownMinutes: number;

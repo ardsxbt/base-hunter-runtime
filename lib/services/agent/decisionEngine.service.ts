@@ -8,6 +8,7 @@ import { agentReceiptService } from './receipt.service';
 import { agentPositionService } from './position.service';
 import { candidateAlertService } from './candidateAlert.service';
 import { swapNotifyService } from './swapNotify.service';
+import { hookGuardService } from './hookGuard.service';
 
 class DecisionEngineService {
   private lastActionMap = new Map<string, number>();
@@ -137,6 +138,14 @@ class DecisionEngineService {
     }
 
     if (score >= policy.minScore) {
+      if (policy.hookGuardEnabled) {
+        const hookPre = hookGuardService.preSwapCheck(ctx);
+        reasons.push(hookPre.reason);
+        if (!hookPre.pass) {
+          return { action: 'SKIP', score, reasons };
+        }
+      }
+
       const oneDollarEth = await this.getEthAmountForUsd(1);
       return {
         action: 'BUY',
@@ -244,6 +253,11 @@ class DecisionEngineService {
         status: 'submitted',
         reason: decision.reasons.join(' | '),
       });
+
+      if (policy.hookGuardEnabled) {
+        const post = hookGuardService.postSwapCheck(token.address);
+        console.log(`🪝 ${post.reason}`);
+      }
 
       console.log(
         `🤖 LIVE BUY ${decision.amountEth} ETH of ${token.symbol} | tx=${buyResult.txHash} | score=${decision.score}`

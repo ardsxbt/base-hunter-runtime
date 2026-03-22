@@ -5,6 +5,7 @@ const DEFAULT_POLICY: IAgentConfig = {
   enabled: false,
   executionMode: 'paper',
   strategyPath: 'classic',
+  hookGuardEnabled: true,
   minScore: 65,
   maxConcurrentPositions: 3,
   cooldownMinutes: 15,

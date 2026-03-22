@@ -15,6 +15,7 @@ AI-agent-friendly Base-chain monitoring + execution runtime, designed for autono
 - Uniswap Trading API buy/sell (Base + Unichain via chain adapter)
 - Permit2 signing-aware swap request flow for Uniswap route types
 - Explicit v4 strategy path (`strategyPath=v4_explicit`) with v4-preferred quoting
+- Hook-aware pre/post risk gating (`hookGuardEnabled=true`)
 - Sell `max` support
 
 ### Autonomous agent layer (new)
@@ -67,6 +68,15 @@ The runtime scores each candidate token from **0 to 100**:
 - Token still in cooldown window
 - Max concurrent positions reached
 - Agent disabled
+- Hook pre-swap guard fails (`hookGuardEnabled=true`)
+
+#### Hook-aware gating (phase 3)
+
+When `hookGuardEnabled=true`, runtime applies deterministic hook-style checks:
+- **pre-swap hook gate**: rejects candidates outside strategy liquidity envelope
+- **post-swap hook check**: records a post-execution guard result in logs
+
+This provides an explicit hook-oriented strategy layer for Uniswap v4-focused submissions while keeping execution path production-safe.
 
 
 ## Run mode
@@ -148,6 +158,7 @@ Agent policy is stored in state (`agentPolicy`) and includes:
 - `maxHoldingMinutes`
 - `strategyPath` (`classic` or `v4_explicit`)
 - `v4ScoreBoost`
+- `hookGuardEnabled`
 
 ---
 
