@@ -35,6 +35,8 @@ export interface IConfig {
   IS_DEVELOPMENT: boolean;
   UNISWAP_API_KEY?: string;
   UNISWAP_ROUTER_VERSION: string;
+  API_PORT: number;
+  X402_ENABLED: boolean;
 }
 
 // Configuration object
@@ -74,4 +76,6 @@ export const config: IConfig = {
   IS_DEVELOPMENT: process.env.NODE_ENV === 'development',
   UNISWAP_API_KEY: process.env.UNISWAP_API_KEY,
   UNISWAP_ROUTER_VERSION: process.env.UNISWAP_ROUTER_VERSION || '2.0',
+  API_PORT: process.env.API_PORT ? parseInt(process.env.API_PORT) : 8787,
+  X402_ENABLED: process.env.X402_ENABLED === 'true',
 };

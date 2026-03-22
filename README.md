@@ -19,6 +19,14 @@ AI-agent-friendly Base-chain monitoring + execution runtime, designed for autono
 - Hook-aware pre/post risk gating (`hookGuardEnabled=true`)
 - Sell `max` support
 
+### Agent service API (x402-ready)
+- `/api/v1/health` (free)
+- `/api/v1/meta` (free)
+- `/api/v1/signal/latest` (x402-gated)
+- `/api/v1/analyze` (x402-gated)
+- `/api/v1/execute/buy` (x402-gated)
+- `X402_ENABLED=true` enables 402 challenge-gate behavior
+
 ### Autonomous agent layer (new)
 - Candidate scoring + policy-driven decision (`BUY` / `SKIP`)
 - Execution modes:
@@ -92,6 +100,7 @@ npm run dev
 
 Behavior:
 - Starts monitoring runtime internally
+- Starts API service for paid utility endpoints
 - Runs decision engine + policy checks
 - Runs TP/SL/max-holding position loop
 - Writes receipts to `agent_log.json`
@@ -196,6 +205,15 @@ Minimal state starter:
 ```
 
 ---
+
+## API quick test
+
+```bash
+curl http://localhost:8787/api/v1/health
+curl http://localhost:8787/api/v1/meta
+```
+
+With `X402_ENABLED=true`, paid endpoints return HTTP 402 unless `x-402-payment` header is present.
 
 ## Scripts
 

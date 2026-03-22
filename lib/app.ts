@@ -1,11 +1,13 @@
 import { agentPositionService } from './services/agent/position.service';
 import { agentRuntimeService } from './services/agent/agentRuntime.service';
+import { apiServer } from './api/server';
 
 export class App {
   async start(): Promise<void> {
     console.log('🚀 Base Hunter Runtime Starting...');
 
     await agentRuntimeService.start();
+    apiServer.start();
 
     // Position risk manager loop (TP/SL/time-based close checks)
     setInterval(async () => {
