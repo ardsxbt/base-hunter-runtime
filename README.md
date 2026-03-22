@@ -25,6 +25,7 @@ Core goals:
 ### A. Onchain monitoring
 - Uniswap V2 `PairCreated` monitoring (Base)
 - Uniswap V3 `PoolCreated` + first-liquidity detection (Base)
+- Uniswap V4 `Initialize` monitoring via PoolManager (Base)
 - Liquidity range filtering
 
 ### B. Strategy & scoring engine
@@ -55,7 +56,7 @@ Core goals:
 - Active execution chain switch: `base | unichain`
 - Chain-aware quote/swap path
 
-> Note: discovery monitoring is currently Base-first; chain adapter currently applies to execution path.
+> Note: discovery monitoring is Base-first. V4 discovery currently emits very-early pool candidates at initialize time (`liquidityETH=0`) before full liquidity context is available.
 
 ---
 

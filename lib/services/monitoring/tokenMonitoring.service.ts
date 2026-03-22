@@ -10,8 +10,10 @@ import {
   uniswapV2Factory,
   uniswapV3Factory,
   zoraFactory,
+  uniswapV4PoolManager,
 } from '../../contracts/contracts';
 import { stateService } from '../state.service';
+import { checkTokenInfo } from '../info.service';
 import { IPairInfo, TFactorySelected } from '../../interface/token.interface';
 
 class TokenMonitoringService {
@@ -35,6 +37,16 @@ class TokenMonitoringService {
     fee: number,
     tickSpacing: number,
     pool: string
+  ) => void;
+  private onV4InitializeHandler?: (
+    poolId: string,
+    currency0: string,
+    currency1: string,
+    fee: number,
+    tickSpacing: number,
+    hooks: string,
+    sqrtPriceX96: bigint,
+    tick: number
   ) => void;
   private onCoinCreatedHandler?: (
     caller: string,
@@ -185,6 +197,42 @@ class TokenMonitoringService {
       this.onPoolCreatedHandler = undefined;
     }
 
+    // Uniswap V4 PoolManager Initialize
+    this.onV4InitializeHandler = async (
+      poolId: string,
+      currency0: string,
+      currency1: string,
+      fee: number,
+      tickSpacing: number,
+      hooks: string,
+      sqrtPriceX96: bigint,
+      tick: number
+    ) => {
+      try {
+        console.log(`🟪 New V4 pool initialized: ${poolId}`);
+        const token0 = await checkTokenInfo(currency0);
+        const token1 = await checkTokenInfo(currency1);
+        if (!token0 || !token1) return;
+
+        const pairInfo: IPairInfo = {
+          pairAddress: poolId,
+          token0,
+          token1,
+          liquidityETH: 0,
+        };
+
+        await this.pairAlertHandler(pairInfo, 'Uniswap V4');
+      } catch (error) {
+        console.error(`Error processing V4 pool ${poolId}:`, error);
+      }
+    };
+
+    if (this.selectedFactories.has('uniswapV4')) {
+      uniswapV4PoolManager.on('Initialize', this.onV4InitializeHandler);
+    } else {
+      this.onV4InitializeHandler = undefined;
+    }
+
     // Zora coin events (currently optional/commented in original)
     this.onCoinCreatedHandler = this.onCoinCreated.bind(this);
     // BaseContracts.zoraFactory.on('CoinCreatedV4', this.onCoinCreatedHandler);
@@ -202,6 +250,12 @@ class TokenMonitoringService {
       uniswapV3Factory.off('PoolCreated', this.onPoolCreatedHandler);
       uniswapV3Factory.removeAllListeners('PoolCreated');
       this.onPoolCreatedHandler = undefined;
+    }
+
+    if (this.onV4InitializeHandler) {
+      uniswapV4PoolManager.off('Initialize', this.onV4InitializeHandler);
+      uniswapV4PoolManager.removeAllListeners('Initialize');
+      this.onV4InitializeHandler = undefined;
     }
 
     if (this.onCoinCreatedHandler) {
