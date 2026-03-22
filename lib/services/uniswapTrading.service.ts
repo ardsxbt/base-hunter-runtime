@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ethers } from 'ethers';
-import { BaseProviders } from '../contracts/providers';
 import { config } from '../utils/config';
+import { getActiveChainId, getActiveChain, getActiveProvider } from '../utils/chain';
 import { checkUserTokenInfo } from './info.service';
 import {
   IUniswapQuoteResponse,
@@ -16,7 +16,7 @@ class UniswapTradingService {
 
   constructor() {
     if (!config.WALLET_PRIVATE_KEY) throw new Error('WALLET_PRIVATE_KEY not configured');
-    this.wallet = new ethers.Wallet(config.WALLET_PRIVATE_KEY, BaseProviders.baseProvider);
+    this.wallet = new ethers.Wallet(config.WALLET_PRIVATE_KEY, getActiveProvider());
   }
 
   private headers() {
@@ -40,7 +40,7 @@ class UniswapTradingService {
         walletAddress: this.wallet.address,
         token,
         amount,
-        chainId: config.BASE_CHAIN_ID,
+        chainId: getActiveChainId(),
       },
       { headers: this.headers() }
     );
@@ -52,6 +52,7 @@ class UniswapTradingService {
       to: approval.to,
       data: approval.data,
       value: BigInt(approval.value || '0'),
+      chainId: getActiveChainId(),
     });
     await tx.wait();
   }
@@ -70,8 +71,8 @@ class UniswapTradingService {
         swapper: this.wallet.address,
         tokenIn,
         tokenOut,
-        tokenInChainId: String(config.BASE_CHAIN_ID),
-        tokenOutChainId: String(config.BASE_CHAIN_ID),
+        tokenInChainId: String(getActiveChainId()),
+        tokenOutChainId: String(getActiveChainId()),
         amount,
         type: 'EXACT_INPUT',
         slippageTolerance,
@@ -133,6 +134,7 @@ class UniswapTradingService {
       to: swap.to,
       data: swap.data,
       value: BigInt(swap.value || '0'),
+      chainId: getActiveChainId(),
     });
     await tx.wait();
     return tx.hash;
@@ -143,6 +145,9 @@ class UniswapTradingService {
     ethAmount: number,
     preferV4 = false
   ): Promise<IUniswapSwapResult> {
+    console.log(
+      `🦄 Uniswap buy on ${getActiveChain()} | chainId=${getActiveChainId()} | token=${tokenAddress}`
+    );
     const amount = ethers.parseEther(ethAmount.toString()).toString();
     const quote = await this.quote(config.ETH_ADDRESS, tokenAddress, amount, preferV4);
     const signature = await this.signPermitIfNeeded(quote);
@@ -156,6 +161,9 @@ class UniswapTradingService {
     tokenAmount: string,
     preferV4 = false
   ): Promise<IUniswapSwapResult> {
+    console.log(
+      `🦄 Uniswap sell on ${getActiveChain()} | chainId=${getActiveChainId()} | token=${tokenAddress}`
+    );
     const tokenInfo = await checkUserTokenInfo(tokenAddress);
     const amount =
       tokenAmount.toLowerCase() === 'max'

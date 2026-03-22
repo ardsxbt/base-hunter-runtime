@@ -7,12 +7,14 @@ AI-agent-friendly Base-chain monitoring + execution runtime, designed for autono
 ### Core monitoring
 - Uniswap V2 `PairCreated` listener (Base)
 - Uniswap V3 `PoolCreated` + first Mint liquidity detection
+- Note: discovery monitoring remains Base-first; chain adapter currently applies to swap execution chain
 - Liquidity window filtering: `MIN_LIQUIDITY_ETH < liquidity < MAX_LIQUIDITY_ETH`
 - Optional token contract verification check (Etherscan)
 
 ### Trading execution
-- Uniswap Trading API buy/sell on Base (primary path)
+- Uniswap Trading API buy/sell (Base + Unichain via chain adapter)
 - Permit2 signing-aware swap request flow for Uniswap route types
+- Explicit v4 strategy path (`strategyPath=v4_explicit`) with v4-preferred quoting
 - Sell `max` support
 
 ### Autonomous agent layer (new)
@@ -54,6 +56,9 @@ The runtime scores each candidate token from **0 to 100**:
 6. **Price-change sanity**: +10
    - +10 if `-35% < priceChange24h < 300%`
    - +0 otherwise
+
+7. **v4 strategy boost**: `+v4ScoreBoost`
+   - Applied when policy sets `strategyPath = v4_explicit`
 
 **Buy trigger:**
 - Candidate becomes BUY only if `score >= minScore` and all guardrails pass.
@@ -127,7 +132,9 @@ Uniswap Trading API config (required for swaps):
 
 From `.env`:
 
-- `ALCHEMY_WS_URL`, `ALCHEMY_HTTP_URL`, `BASE_MAINET_RPC_URL` → chain connectivity
+- `ACTIVE_CHAIN` (`base` or `unichain`) → active execution chain
+- `BASE_MAINET_RPC_URL`, `UNICHAIN_RPC_URL` → chain RPC endpoints
+- `ALCHEMY_WS_URL`, `ALCHEMY_HTTP_URL` → Base event monitoring endpoints
 - `WALLET_PRIVATE_KEY` → required for live transactions
 - `MIN_LIQUIDITY_ETH`, `MAX_LIQUIDITY_ETH` → pool filter
 
@@ -139,6 +146,8 @@ Agent policy is stored in state (`agentPolicy`) and includes:
 - `defaultBuyEth`, `maxBuyEth`
 - `takeProfitPercent`, `stopLossPercent`
 - `maxHoldingMinutes`
+- `strategyPath` (`classic` or `v4_explicit`)
+- `v4ScoreBoost`
 
 ---
 

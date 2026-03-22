@@ -1,11 +1,12 @@
 import { ethers } from 'ethers';
 import { config } from '../utils/config';
 import { BaseProviders } from '../contracts/providers';
+import { getActiveProvider } from '../utils/chain';
 import { IUserTokenInfo, ITokenInfo } from '../interface/token.interface';
 import * as BaseContracts from '../contracts/contracts';
 
 export async function checkUserTokenInfo(tokenAddress: string): Promise<IUserTokenInfo> {
-  const wallet = new ethers.Wallet(config.WALLET_PRIVATE_KEY!, BaseProviders.baseProvider);
+  const wallet = new ethers.Wallet(config.WALLET_PRIVATE_KEY!, getActiveProvider());
 
   const tokenContract = new ethers.Contract(tokenAddress, BaseContracts.erc20Abi, wallet.provider);
 

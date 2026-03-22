@@ -7,6 +7,8 @@ export interface IConfig {
   ALCHEMY_WS_URL: string;
   ALCHEMY_HTTP_URL: string;
   BASE_MAINET_RPC_URL: string;
+  UNICHAIN_RPC_URL?: string;
+  ACTIVE_CHAIN: 'base' | 'unichain';
   BIG_BUY_THRESHOLD: number;
   MIN_LIQUIDITY_ETH: number;
   MAX_LIQUIDITY_ETH: number;
@@ -27,6 +29,7 @@ export interface IConfig {
   ETHER_SCAN_API: string;
   ETHER_SCAN_API_KEY: string;
   BASE_CHAIN_ID: number;
+  UNICHAIN_CHAIN_ID: number;
   USDC_ADDRESS: string;
   NODE_ENV: string;
   IS_DEVELOPMENT: boolean;
@@ -39,6 +42,8 @@ export const config: IConfig = {
   ALCHEMY_WS_URL: process.env.ALCHEMY_WS_URL!,
   ALCHEMY_HTTP_URL: process.env.ALCHEMY_HTTP_URL!,
   BASE_MAINET_RPC_URL: process.env.BASE_MAINET_RPC_URL!,
+  UNICHAIN_RPC_URL: process.env.UNICHAIN_RPC_URL,
+  ACTIVE_CHAIN: process.env.ACTIVE_CHAIN === 'unichain' ? 'unichain' : 'base',
   BIG_BUY_THRESHOLD: parseFloat('1.0'),
   MIN_LIQUIDITY_ETH: process.env.MIN_LIQUIDITY_ETH
     ? parseFloat(process.env.MIN_LIQUIDITY_ETH)
@@ -63,6 +68,7 @@ export const config: IConfig = {
   ETHER_SCAN_API: 'https://api.etherscan.io/v2/api',
   ETHER_SCAN_API_KEY: process.env.ETHER_SCAN_API_KEY!,
   BASE_CHAIN_ID: 8453,
+  UNICHAIN_CHAIN_ID: process.env.UNICHAIN_CHAIN_ID ? parseInt(process.env.UNICHAIN_CHAIN_ID) : 130,
   USDC_ADDRESS: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // USDC on Base
   NODE_ENV: process.env.NODE_ENV || 'production',
   IS_DEVELOPMENT: process.env.NODE_ENV === 'development',
